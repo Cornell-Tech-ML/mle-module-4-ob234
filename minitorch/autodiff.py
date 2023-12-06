@@ -105,7 +105,6 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
                     continue
                 derivatives.setdefault(v.unique_id, 0.0)
                 derivatives[v.unique_id] = derivatives[v.unique_id] + d   
-
     #END ASSIGN 1.4  
 
 

@@ -212,7 +212,7 @@ def tensor_zip(fn: Callable[[float, float], float]) -> Any:
         
         if i < out_size:
             to_index(i, out_shape, out_index)
-            o = broadcast_index(out_index, out_strides)
+            o = index_to_position(out_index, out_strides)
             broadcast_index(out_index, out_shape, a_shape, a_index)
             j = index_to_position(a_index, a_strides)
             broadcast_index(out_index, out_shape, b_shape, b_index)
@@ -384,8 +384,8 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
     if i >= size or j >= size:
         return 
 
-    a_shared[i, j] = a[size * i + j]
-    b_shared[i, j] = b[size * i + j]
+    a_shared[i, j] = a[size * i * j]
+    b_shared[i, j] = b[size * i * j]
     cuda.syncthreads()
     
     accum = 0.0
