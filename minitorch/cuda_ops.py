@@ -374,26 +374,24 @@ def _mm_practice(out: Storage, a: Storage, b: Storage, size: int) -> None:
         size (int): size of the square
     """
     BLOCK_DIM = 32
-    # ASSIGN3.3
+
     a_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
     b_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
     
     i = cuda.threadIdx.x
     j = cuda.threadIdx.y
     
-    if i >= size or j >= size:
-        return 
-
-    a_shared[i, j] = a[size * i * j]
-    b_shared[i, j] = b[size * i * j]
-    cuda.syncthreads()
-    
-    accum = 0.0
-    
-    for k in range(size):
-        accum += a_shared[i, k] * b_shared[k, j]
+    if i < size and j < size:
+        a_shared[i, j] = a[size * i + j]
+        b_shared[i, j] = b[size * i + j]
+        cuda.syncthreads()
         
-    out[i * size + j] = accum
+        accum = 0.0
+        
+        for k in range(size):
+            accum += a_shared[i, k] * b_shared[k, j]
+            
+        out[size * i + j] = accum
     #END ASSIGN3.3  
 
 
