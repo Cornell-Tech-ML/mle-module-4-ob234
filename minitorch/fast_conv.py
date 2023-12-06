@@ -81,7 +81,39 @@ def _tensor_conv1d(
     s2 = weight_strides
 
     # TODO: Implement for Task 4.1.
-    raise NotImplementedError("Need to implement for Task 4.1")
+    for i in prange(out_size):
+        out_index = np.empty(len(out_shape), np.uint16)
+        to_index(i, out_shape, out_index)
+        current_batch, current_out_channel, current_width = out_index
+        out_pos = (
+            current_batch * out_strides[0]
+            + current_out_channel * out_strides[1]
+            + current_width * out_strides[2]
+        )
+        for current_in_channel in prange(in_channels):
+            for current_kw in range(kw):
+                if reverse:
+                    current_kw = kw - current_kw - 1
+                weight_pos = (
+                    current_out_channel * weight_strides[0]
+                    + current_in_channel * weight_strides[1]
+                    + current_kw * weight_strides[2]
+                )
+                input_val = 0
+                if reverse and 0 <= (current_width - current_kw):
+                    input_val = input[
+                        current_batch * input_strides[0]
+                        + current_in_channel * input_strides[1]
+                        + (current_width - current_kw) * input_strides[2]
+                    ]
+                elif not reverse and (current_width + current_kw) < width:
+                    input_val = input[
+                        current_batch * input_strides[0]
+                        + current_in_channel * input_strides[1]
+                        + (current_width + current_kw) * input_strides[2]
+                    ]
+                out[out_pos] += input_val * weight[weight_pos]
+    #raise NotImplementedError("Need to implement for Task 4.1")
 
 
 tensor_conv1d = njit(parallel=True)(_tensor_conv1d)
@@ -207,7 +239,54 @@ def _tensor_conv2d(
     s20, s21, s22, s23 = s2[0], s2[1], s2[2], s2[3]
 
     # TODO: Implement for Task 4.2.
-    raise NotImplementedError("Need to implement for Task 4.2")
+    for i1 in prange(batch_):
+        for i2 in prange(out_channels):
+            for i3 in prange(out_shape[2]):
+                for i4 in prange(out_shape[3]):
+                    out_position = (
+                        i1 * out_strides[0]
+                        + i2 * out_strides[1]
+                        + i3 * out_strides[2]
+                        + i4 * out_strides[3]
+                    )
+                    total_acc = 0.0
+                    for j in range(in_channels):
+                        for h in range(kh):
+                            for s in range(kw):
+                                if not reverse:
+                                    if (i3 + h) < height and (i4 + s) < width:
+                                        input_inner = (
+                                            i1 * s10
+                                            + j * s11
+                                            + (i3 + h) * s12
+                                            + (i4 + s) * s13
+                                        )
+                                        weight_inner = (
+                                            i2 * s20 + j * s21 + h * s22 + s * s23
+                                        )
+                                        total_acc += (
+                                            input[input_inner] * weight[weight_inner]
+                                        )
+                                    else:
+                                        total_acc += 0
+                                else:
+                                    if (i3 - h) >= 0 and (i4 - s) >= 0:
+                                        input_inner = (
+                                            i1 * s10
+                                            + j * s11
+                                            + (i3 - h) * s12
+                                            + (i4 - s) * s13
+                                        )
+                                        weight_inner = (
+                                            i2 * s20 + j * s21 + h * s22 + s * s23
+                                        )
+                                        total_acc += (
+                                            input[input_inner] * weight[weight_inner]
+                                        )
+                                    else:
+                                        total_acc += 0
+                    out[out_position] = total_acc
+    #raise NotImplementedError("Need to implement for Task 4.2")
 
 
 tensor_conv2d = njit(parallel=True, fastmath=True)(_tensor_conv2d)

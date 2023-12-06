@@ -39,8 +39,6 @@ if numba.cuda.is_available():
 
 
 # ## Task 3.1 and 3.3
-
-
 @given(lists(small_floats, min_size=1))
 @pytest.mark.parametrize("backend", backend_tests)
 def test_create(backend: str, t1: List[float]) -> None:

@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 from typing import Any, Dict, Optional, Sequence, Tuple
 
 
@@ -31,26 +30,41 @@ class Module:
 
     def train(self) -> None:
         "Set the mode of this module and all descendent modules to `train`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # ASSIGN0.4
+        for m in self.modules():
+            m.train()
+        self.training = True
+        # END ASSIGN0.4
 
     def eval(self) -> None:
         "Set the mode of this module and all descendent modules to `eval`."
-        raise NotImplementedError("Need to include this file from past assignment.")
+        # ASSIGN 0.4
+        for m in self.modules():
+            m.eval()
+        self.training = False
+        # END ASSIGN 0.4
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """
         Collect all the parameters of this module and its descendents.
-
-
-        Returns:
-            The name and `Parameter` of each ancestor parameter.
+        Returns: The name and `Parameter` of each ancestor parameter.
         """
-        raise NotImplementedError("Need to include this file from past assignment.")
-
+        # ASSIGN0.4
+        parameters = {}
+        for k , v in self._parameters.items():
+            parameters[k] = v
+        for mod_name, m in self._modules.items():
+            for k, v in m.named_parameters():
+                parameters[f"{mod_name}.{k}"] = v
+        return list(parameters.items())
+        # END ASSIGN0.4
+        
     def parameters(self) -> Sequence[Parameter]:
         "Enumerate over all the parameters of this module and its descendents."
-        raise NotImplementedError("Need to include this file from past assignment.")
-
+        # ASSIGN0.4
+        return [j for _, j in self.named_parameters()]
+        # END ASSIGN0.4
+        
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """
         Manually add a parameter. Useful helper for scalar parameters.
@@ -106,7 +120,6 @@ class Module:
 
         main_str = self.__class__.__name__ + "("
         if lines:
-            # simple one-liner info, which most builtin Modules will use
             main_str += "\n  " + "\n  ".join(lines) + "\n"
 
         main_str += ")"
@@ -115,9 +128,9 @@ class Module:
 
 class Parameter:
     """
-    A Parameter is a special container stored in a `Module`.
+    A Parameter is a special container stored in a :class:`Module`.
 
-    It is designed to hold a `Variable`, but we allow it to hold
+    It is designed to hold a :class:`Variable`, but we allow it to hold
     any value for testing.
     """
 
@@ -142,3 +155,4 @@ class Parameter:
 
     def __str__(self) -> str:
         return str(self.value)
+    
